@@ -62,29 +62,35 @@ class Classroom {
   async add(req, res, next) {
     const form = new formidable.IncomingForm();
     form.parse(req, async (err, fields, files) => {
-      const { location, capacity, rooms } = fields;
+      const { location, rooms } = fields;
 
       let sendObj = {
         message: "",
         code: 400,
         data: null,
       };
-      if (!location || !capacity) {
-        sendObj.message = "名称或容量不能为空";
+      if (!location) {
+        sendObj.message = "教学楼不能为空";
         return res.send(sendObj);
       }
+
+      rooms.forEach((room) => {
+        if(!room.doorPlate){
+          sendObj.message = "教室门牌号不能为空";
+          return res.send(sendObj);
+        }
+      })
 
       // 查询数据库中是否有同名的教室
       const existingClassroom = await ClassroomModel.findOne({ location });
       if (existingClassroom) {
-        sendObj.message = "该教室已存在";
+        sendObj.message = "该教学楼已存在";
         return res.send(sendObj);
       }
 
       const newClassroom = {
         id: Math.random().toString().slice(-5),
         location,
-        capacity,
         rooms,
         createTime: dtime().format("YYYY-MM-DD HH:mm"),
       };
@@ -102,7 +108,7 @@ class Classroom {
   async update(req, res, next) {
     const form = new formidable.IncomingForm();
     form.parse(req, async (err, fields, files) => {
-      const { _id, location, capacity, rooms } = fields;
+      const { _id, location, rooms } = fields;
 
       let sendObj = {
         message: "",
@@ -110,20 +116,19 @@ class Classroom {
         data: null,
       };
       if (!_id) {
-        sendObj.message = "未指定教室";
+        sendObj.message = "需要教室ID";
         return res.send(sendObj);
       }
 
       // 查询数据库中是否有指定id的教室
       const classroom = await ClassroomModel.findById(_id);
       if (!classroom) {
-        sendObj.message = "该教室不存在";
+        sendObj.message = "教学楼不存在";
         return res.send(sendObj);
       }
 
       // 更新指定字段
       classroom.location = location || classroom.location;
-      classroom.capacity = capacity || classroom.capacity;
       classroom.updateTime = dtime().format("YYYY-MM-DD HH:mm");
       classroom.rooms = rooms;
       classroom.save();
