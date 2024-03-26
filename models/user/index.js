@@ -16,6 +16,7 @@ const userSchema = new Schema({
 	updateTime: String,
 	avatar: {type: String, default: 'default.jpg'},
 	roles: [],	// 权限
+	teacherOffice: String,		// 教师办公地点（教室）
 })
 
 userSchema.index({id: 1});

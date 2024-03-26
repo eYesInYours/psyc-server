@@ -9,6 +9,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const history = require("connect-history-api-fallback");
 const chalk = require("chalk");
+const check = require("./middlewares/check");
 
 const app = express();
 
@@ -31,6 +32,8 @@ app.all("*", (req, res, next) => {
 });
 
 // const MongoStore = connectMongo(session);
+
+
 app.use(cookieParser());
 console.log('config', config.url)
 app.use(
