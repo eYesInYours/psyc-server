@@ -81,7 +81,7 @@ class Classroom {
         }
       });
 
-      // 查询数据库中是否有同名的教室
+      // 查询数据库中是否有同名的教学楼
       const existingClassroom = await ClassroomModel.findOne({ location });
       if (existingClassroom) {
         sendObj.message = "该教学楼已存在";
@@ -91,7 +91,10 @@ class Classroom {
       const newClassroom = {
         id: Math.random().toString().slice(-5),
         location,
-        rooms,
+        rooms: rooms.map(room => ({
+          id: Math.random().toString().slice(-5),
+          ...room
+        })),
         createTime: dtime().format("YYYY-MM-DD HH:mm"),
       };
       await ClassroomModel.create(newClassroom);
@@ -130,6 +133,13 @@ class Classroom {
       // 更新指定字段
       classroom.location = location || classroom.location;
       classroom.updateTime = dtime().format("YYYY-MM-DD HH:mm");
+      // 如果rooms下的对象有id，则更新，否则新增
+      rooms.forEach((room) => {
+        if (!room.id) {
+          room.id = Math.random().toString().slice(-5);
+        }
+      });
+      console.log("rooms", rooms);
       classroom.rooms = rooms;
       classroom.save();
 
@@ -144,7 +154,7 @@ class Classroom {
   async search(req, res, next) {
     try {
       const { keyword } = req.query;
-      console.log('keyword', keyword)
+      console.log("keyword", keyword);
       let query = {}; // 定义一个空对象作为查询条件
 
       // 如果有关键字，则添加模糊查询条件

@@ -77,7 +77,7 @@ class Admin {
     const form = new formidable.IncomingForm();
     form.parse(req, async (err, fields, files) => {
       console.log("fields", fields);
-      const { username, password, type, phone, intro, nickname } = fields;
+      const { username, password, type, phone, intro, nickname, officeIds, officeNames } = fields;
 
       let sendObj = {
         message: "",
@@ -103,7 +103,9 @@ class Admin {
           type,
           roles: [type],
           phone,
-          intro
+          intro,
+          officeIds,
+          officeNames,
         };
         await UserModel.create(newUser);
 
@@ -136,13 +138,15 @@ class Admin {
           });
         }
         console.log(fields);
-        const { id, _id, nickname, phone, intro } = fields;
+        const { id, _id, nickname, phone, intro, officeIds, officeNames } = fields;
         let updater = {
           updateTime: dtime().format("YYYY-MM-DD HH:mm"),
         };
         if (nickname) updater.nickname = nickname;
         if (phone) updater.phone = phone;
         if (intro) updater.intro = intro;
+        if (officeIds) updater.officeIds = officeIds;
+        if (officeNames) updater.officeNames = officeNames;
 
         // 更新指定字段
         // 更新指定userId用户
