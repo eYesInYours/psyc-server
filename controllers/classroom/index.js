@@ -143,12 +143,13 @@ class Classroom {
 
   async search(req, res, next) {
     try {
-      const { keyWord } = req.query;
+      const { keyword } = req.query;
+      console.log('keyword', keyword)
       let query = {}; // 定义一个空对象作为查询条件
 
       // 如果有关键字，则添加模糊查询条件
-      if (keyWord) {
-        const regex = new RegExp(keyWord, "i"); // 创建不区分大小写的正则表达式
+      if (keyword) {
+        const regex = new RegExp(keyword, "i"); // 创建不区分大小写的正则表达式
         query = {
           $or: [
             { location: { $regex: regex } },
