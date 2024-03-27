@@ -29,7 +29,7 @@ class Classroom {
   /* 删除指定ClassroomId的教室 */
   async del(req, res, next) {
     const { id } = req.params;
-    const classroom = await ClassroomModel.findOne({id});
+    const classroom = await ClassroomModel.findOne({ id });
 
     let errObj = {
       code: 400,
@@ -75,11 +75,11 @@ class Classroom {
       }
 
       rooms.forEach((room) => {
-        if(!room.doorPlate){
+        if (!room.doorPlate) {
           sendObj.message = "教室门牌号不能为空";
           return res.send(sendObj);
         }
-      })
+      });
 
       // 查询数据库中是否有同名的教室
       const existingClassroom = await ClassroomModel.findOne({ location });
@@ -139,6 +139,41 @@ class Classroom {
         data: null,
       });
     });
+  }
+
+  async search(req, res, next) {
+    try {
+      const { keyword } = req.query;
+      console.log('keyword', keyword)
+      let query = {}; // 定义一个空对象作为查询条件
+
+      // 如果有关键字，则添加模糊查询条件
+      if (keyword) {
+        const regex = new RegExp(keyword, "i"); // 创建不区分大小写的正则表达式
+        query = {
+          $or: [
+            { location: { $regex: regex } },
+            // 可以添加其他字段的模糊查询
+          ],
+        };
+      }
+
+      // 执行查询
+      const classrooms = await ClassroomModel.find(query);
+
+      res.send({
+        code: 0,
+        data: classrooms,
+        message: "查询成功",
+      });
+    } catch (err) {
+      console.error("查询失败:", err);
+      res.send({
+        code: 400,
+        data: null,
+        message: "查询失败",
+      });
+    }
   }
 }
 
