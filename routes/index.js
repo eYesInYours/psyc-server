@@ -4,7 +4,7 @@ const user = require("./user");
 const admin = require("./admin");
 const classroom = require("./classroom");
 const appoint = require("./appoint");
-const order = require("../order");
+const order = require("./order");
 
 module.exports = (app) => {
   app.use("/user", user);

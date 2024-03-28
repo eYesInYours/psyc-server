@@ -1,4 +1,4 @@
-const orderModel = require("../models/orderModel");
+const orderModel = require("../../models/order/index");
 const formidable = require("formidable");
 const dtime = require("time-formater");
 
@@ -16,10 +16,13 @@ class Order {
       .skip((pageNum * 1 - 1) * (pageSize * 1))
       .limit(pageSize * 1);
 
-    // 更新订单状态
-    const currentTime = DateTime.now(); // 获取当前时间
+    // // 更新订单状态
+    // 获取当前时间
+    const currentTime = dtime().format("YYYY-MM-DD HH:mm:ss");
+    console.log("curr", currentTime);
     for (const order of list) {
-      const orderStartTime = DateTime.fromJSDate(order.dateTime); // 将订单开始时间转换为 Luxon DateTime 对象
+      const orderStartTime = dtime(order.dateTime).format(); // 将订单开始时间转换为 Luxon DateTime 对象
+      console.log("order", orderStartTime);
       const orderEndTime = orderStartTime.plus({ hours: order.duration }); // 计算订单结束时间
 
       if (currentTime >= orderStartTime && currentTime <= orderEndTime) {
@@ -60,19 +63,34 @@ class Order {
         errObj.data = err;
         return res.send(errObj);
       }
-      const { teaId, dateTime, duration } = fields;
-      if (!teaId) {
+      const { id, times } = fields;
+      if (!id) {
         errObj.message = "请选择教师";
         return res.send(errObj);
-      } else if (!dateTime || !duration) {
-        errObj.message = "请选择开始或持续时间";
+      } else if (!times.length || times.length != 2) {
+        errObj.message = "请选择开始和结束时间";
         return res.send(errObj);
       }
 
+      // 用户Id
+      const userId = req.headers.authorization;
+
+      // 查找订单
+      const userOrder = await orderModel.findOne({
+        stuId: userId,
+      });
+      if (userOrder && userOrder.teaId==id && (userOrder.status=='APPLYING' || userOrder.status=='AGREE')) {
+        errObj.message = "您已经预约该教师了，请勿重复预约";
+        return res.send(errObj);
+      }
+
+      times.forEach((time, index) => {
+        times[index] = dtime(time).format("YYYY-MM-DD HH:mm:ss");
+        console.log("time", time);
+      });
       const order = await orderModel.create({
-        teaId,
-        dateTime,
-        duration,
+        teaId: id,
+        times,
         status: "APPLYING",
         createTime: dtime().format("YYYY-MM-DD HH:mm:ss"),
         id: Math.random().toString().slice(-5),
@@ -166,8 +184,8 @@ class Order {
       const order = await orderModel.findById(id);
       order.status = status;
       if (status == "REJECT") order.rejectReason = rejectReason;
-      if(dateTime) order.dateTime = dateTime;
-      if(duration) order.duration = duration;
+      if (dateTime) order.dateTime = dateTime;
+      if (duration) order.duration = duration;
       await order.save();
 
       res.send({
@@ -176,7 +194,6 @@ class Order {
         data: null,
       });
     });
-  
   }
 }
 
