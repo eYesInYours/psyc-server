@@ -28,6 +28,30 @@ class Check {
     }
     next();
   }
+
+  async checkTeacher(req, res, next) {
+    // 获取请求头中Header中的字段
+    const userId = req.headers.authorization;
+    if (!userId) {
+      res.send({
+        code: 401,
+        message: "您还未登录",
+        data: null
+      });
+      return;
+    } else {
+      const admin = await UserModel.findOne({ id: userId, type: 'TEACHER' });
+      if (!admin) {
+        res.send({
+          code: 403,
+          message: "您不是教师，无权限操作",
+          data: null
+        });
+        return;
+      }
+    }
+    next();
+  }
 }
 
 module.exports = new Check();

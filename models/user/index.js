@@ -10,6 +10,8 @@ const userSchema = new Schema({
 	username: {type: String, required: true},	// 登陆账号
 	password: {type: String, required: true},
 	type: {type: String, required: true},
+	// sex只能取固定的值
+	sex: {type: String, default: '', enum: ['MAN', 'WOMAN', '']},
 	phone: String,
 	intro: String,
 	createTime: String,
