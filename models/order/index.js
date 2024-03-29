@@ -5,7 +5,9 @@ const Schema = mongoose.Schema
 const orderSchema = new Schema({
     id: Number,
     stuId: Number,
-    TeaId: Number,
+    studentDTO: Object,
+    teacherDTO: Object,
+    teaId: Number,
     times: Array,
     status: {type: String, default: 'APPLYING', enum: ['APPLYING', 'REJECT', 'AGREE', 'UNDERWAY', 'FINISHED']},
     rejectReason: String,

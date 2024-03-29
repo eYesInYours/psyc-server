@@ -1,4 +1,6 @@
 const orderModel = require("../../models/order/index");
+const userModel = require("../../models/user/index");
+const classroomModel = require("../../models/classroom/index");
 const formidable = require("formidable");
 const dtime = require("time-formater");
 
@@ -19,23 +21,44 @@ class Order {
     // // 更新订单状态
     // 获取当前时间
     const currentTime = dtime().format("YYYY-MM-DD HH:mm:ss");
-    console.log("curr", currentTime);
+    // console.log("curr", currentTime);
     for (const order of list) {
-      const orderStartTime = dtime(order.dateTime).format(); // 将订单开始时间转换为 Luxon DateTime 对象
-      console.log("order", orderStartTime);
-      const orderEndTime = orderStartTime.plus({ hours: order.duration }); // 计算订单结束时间
+      {
+        const orderStartTime = order.times[0]; // 将订单开始时间转换为 Luxon DateTime 对象
+        // console.log("order", orderStartTime);
+        const orderEndTime = order.times[1]; // 计算订单结束时间
 
-      if (currentTime >= orderStartTime && currentTime <= orderEndTime) {
-        // 如果当前时间在订单时间范围内，则更新订单状态为UNDERWAY
-        order.status = "UNDERWAY";
-      } else if (currentTime > orderEndTime) {
-        // 如果当前时间超过订单结束时间，则更新订单状态为FINISHED
-        order.status = "FINISHED";
+        if (currentTime >= orderStartTime && currentTime <= orderEndTime) {
+          // 如果当前时间在订单时间范围内，则更新订单状态为UNDERWAY
+          order.status = "UNDERWAY";
+        } else if (currentTime > orderEndTime) {
+          // 如果当前时间超过订单结束时间，则更新订单状态为FINISHED
+          order.status = "FINISHED";
+        }
+        // 其他情况订单状态不变
+
+        if (!order.teacherDTO) {
+          /* 查询教师 */
+          const teacher = await userModel.findOne(
+            { id: order.teaId },
+            "-password"
+          );
+          const student = await userModel.findOne(
+            { id: order.stuId },
+            "-password"
+          );
+          
+
+          console.log('teacher', teacher)
+          
+          // 将教师和学生信息挂载到订单对象上
+          order.teacherDTO = teacher;
+          order.studentDTO = student;
+        }
+
+        // 保存修改后的订单状态
+        await order.save();
       }
-      // 其他情况订单状态不变
-
-      // 保存修改后的订单状态
-      await order.save();
     }
 
     res.send({
@@ -74,22 +97,26 @@ class Order {
 
       // 用户Id
       const userId = req.headers.authorization;
+      // console.log("create", userId, id);
 
       // 查找订单
       const userOrder = await orderModel.findOne({
         stuId: userId,
+        teaId: id,
+        status: { $in: ["APPLYING", "AGREE"] },
       });
-      if (userOrder && userOrder.teaId==id && (userOrder.status=='APPLYING' || userOrder.status=='AGREE')) {
-        errObj.message = "您已经预约该教师了，请勿重复预约";
+      if (userOrder) {
+        errObj.message = "您已预约该教师，请勿重复预约";
         return res.send(errObj);
       }
 
       times.forEach((time, index) => {
         times[index] = dtime(time).format("YYYY-MM-DD HH:mm:ss");
-        console.log("time", time);
+        // console.log("time", time);
       });
       const order = await orderModel.create({
         teaId: id,
+        stuId: userId,
         times,
         status: "APPLYING",
         createTime: dtime().format("YYYY-MM-DD HH:mm:ss"),

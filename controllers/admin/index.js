@@ -1,6 +1,7 @@
 "use strict";
 
 const UserModel = require("../../models/user");
+const ClassroomModel = require("../../models/classroom");
 const formidable = require("formidable");
 const dtime = require("time-formater");
 
@@ -146,7 +147,14 @@ class Admin {
         if (nickname) updater.nickname = nickname;
         if (phone) updater.phone = phone;
         if (intro) updater.intro = intro;
-        if (officeIds) updater.officeIds = officeIds;
+        if (officeIds?.length){
+          updater.officeIds = officeIds;
+          
+          /* 查办公地点容量 */
+          const classroom = await ClassroomModel.findOne({ id: officeIds[0] })
+          const assign = classroom.rooms.filter(item => item.id == officeIds[1])[0]
+          updater.officeCapacity = assign.capacity
+        }
         if (officeNames) updater.officeNames = officeNames;
         if(sex) updater.sex = sex
 

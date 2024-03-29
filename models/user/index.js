@@ -20,7 +20,8 @@ const userSchema = new Schema({
 	roles: [],	// 权限
 	// teacherOffice: String,		// 教师办公地点（教室）
 	officeIds: [],
-	officeNames: []
+	officeNames: [],
+	officeCapacity: Number,
 })
 
 userSchema.index({id: 1});
