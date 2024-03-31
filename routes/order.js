@@ -6,8 +6,9 @@ const router = express.Router();
 const Check = require("../middlewares/check");
 
 router.get("/list", OrderHandler.list);
-router.post("/create", OrderHandler.create);
-router.post("/update", Check.checkAdmin, OrderHandler.update);
+router.post("/create", Check.checkStudent, OrderHandler.create);
+router.put("/cancel/:id", Check.checkStudent, OrderHandler.cancel);
+router.put("/update", Check.checkAdmin, OrderHandler.update);
 router.delete("/del/:id", Check.checkAdmin, OrderHandler.del);
 router.post("/agreeOrReject", Check.checkTeacher, OrderHandler.agreeOrReject);
 

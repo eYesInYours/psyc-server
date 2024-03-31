@@ -90,6 +90,11 @@ class Admin {
         return res.send(sendObj);
       }
 
+      if(type=='STUDENT' && !phone){
+        sendObj.message = "学生手机号不能为空";
+        return res.send(sendObj);
+      }
+
       // 查询数据库中是否有同名的username
       const user = await UserModel.findOne({ username });
       const returnUser = await UserModel.findOne({ username }, "-password");
@@ -140,13 +145,14 @@ class Admin {
           });
         }
         console.log(fields);
-        const { id, _id, nickname, phone, intro, officeIds, officeNames, sex } = fields;
+        const { id, _id, nickname, phone, intro, officeIds, officeNames, sex, avatar } = fields;
         let updater = {
           updateTime: dtime().format("YYYY-MM-DD HH:mm"),
         };
         if (nickname) updater.nickname = nickname;
         if (phone) updater.phone = phone;
         if (intro) updater.intro = intro;
+        if(avatar) updater.avatar = avatar
         if (officeIds?.length){
           updater.officeIds = officeIds;
           

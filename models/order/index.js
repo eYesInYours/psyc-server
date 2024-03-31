@@ -9,9 +9,10 @@ const orderSchema = new Schema({
     teacherDTO: Object,
     teaId: Number,
     times: Array,
-    status: {type: String, default: 'APPLYING', enum: ['APPLYING', 'REJECT', 'AGREE', 'UNDERWAY', 'FINISHED']},
+    status: {type: String, default: 'APPLYING', enum: ['APPLYING', 'REJECT', 'AGREE', 'UNDERWAY', 'FINISHED', 'CANCELED']},
     rejectReason: String,
     createTime: String,     // 订单创建时间
+    updateTime: String,     // 订单创建时间
 })
 
 orderSchema.index({id: 1})

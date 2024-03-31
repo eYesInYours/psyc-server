@@ -90,6 +90,53 @@ class UserHandler {
       });
     }
   }
+
+  /* 更新用户信息 */
+  async updateUserInfo(req, res, next) {
+    const form = new formidable.IncomingForm();
+    form.parse(req, async (err, fields, files) => {
+      try {
+        const {
+          id,
+          avatar,
+          intro,
+          nickname,
+          officeIds,
+          officeNames,
+          officeCapacity,
+          password,
+          phone,
+          sex,
+        } = fields;
+        await UserModel.updateOne(
+          { id },
+          {
+            avatar,
+            intro,
+            nickname,
+            officeIds,
+            officeNames,
+            officeCapacity,
+            password,
+            phone,
+            sex,
+          }
+        );
+        res.send({
+          message: "更新成功",
+          data: null,
+          code: 0,
+        });
+      } catch (error) {
+        console.log(error);
+        res.send({
+          message: "更新失败",
+          data: null,
+          code: 400,
+        });
+      }
+    });
+  }
 }
 
 module.exports = new UserHandler();

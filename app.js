@@ -10,6 +10,7 @@ const MongoStore = require("connect-mongo");
 const history = require("connect-history-api-fallback");
 const chalk = require("chalk");
 const check = require("./middlewares/check");
+const path = require("path");
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.all("*", (req, res, next) => {
 
 // const MongoStore = connectMongo(session);
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(cookieParser());
 console.log('config', config.url)
