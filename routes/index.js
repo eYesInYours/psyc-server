@@ -5,6 +5,7 @@ const admin = require("./admin");
 const classroom = require("./classroom");
 const appoint = require("./appoint");
 const order = require("./order");
+const comment = require('./comment')
 
 module.exports = (app) => {
   app.use("/user", user);
@@ -12,4 +13,5 @@ module.exports = (app) => {
   app.use("/classroom", classroom);
   app.use("/appoint", appoint);
   app.use("/order", order);
+  app.use("/comment", comment);
 };

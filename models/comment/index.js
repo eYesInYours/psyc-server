@@ -13,6 +13,8 @@ const commentSchema = new Schema({
     updateTime: String,
     // 限制内容不超过500字
     content: {type: String, maxlength: 500},
+    // 限定只有1-5
+    rate: {type: Number, min: 1, max: 5}
 })
 
 commentSchema.index({id: 1});
