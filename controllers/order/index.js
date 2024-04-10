@@ -162,7 +162,8 @@ class Order {
         return res.send(errObj);
       }
 
-      if(status != 'APPLYING'){
+      const order = await orderModel.findById(_id);
+      if(order.status != 'APPLYING'){
         errObj.message = "预约不在申请中，已不能处理";
         return res.send(errObj);
       }
@@ -172,7 +173,7 @@ class Order {
         return res.send(errObj);
       }
 
-      const order = await orderModel.findById(_id);
+
       order.status = status;
       if (status == "REJECT") order.rejectReason = rejectReason;
       await order.save();
@@ -180,7 +181,7 @@ class Order {
       res.send({
         code: 0,
         message: "操作成功",
-        data: null,
+        data: order,
       });
     });
   }
