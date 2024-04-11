@@ -6,6 +6,7 @@ const Schema = mongoose.Schema;
 
 const commentSchema = new Schema({
     id: Number,
+    orderId: Number,
     teaId: Number,      // 被评论者
     stuId: Number,      // 评论者
     studentDTO: Object, // 评论者信息

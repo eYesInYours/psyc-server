@@ -1,140 +1,201 @@
 "use strict";
 
 const CommentModel = require("../../models/comment");
+const orderModel = require("../../models/order");
 const UserModel = require("../../models/user");
 const formidable = require("formidable");
 const dtime = require("time-formater");
 
-class Comment{
-    /* 查询老师的评论列表 */
-    async list(req, res, next){
-        /* 
+class Comment {
+  /* 查询老师的评论列表 */
+  async list(req, res, next) {
+    /* 
             TEACHER 查询对他所有的评论
             STUDENT 查询自己所有的评论
             ADMIN   查询教师所有的评论
 
         */
-        const {pageNum=1, pageSize=15, id} = req.query
-        const userId = req.headers.authorization;
-        const errObj = {
-            code: 400,
-            data: null,
-            message: ''
-        }
+    const { pageNum = 1, pageSize = 15, id } = req.query;
+    const userId = req.headers.authorization;
+    const errObj = {
+      code: 400,
+      data: null,
+      message: "",
+    };
 
-        // if(!id){
-        //     errObj.message = '被评论者id不能为空'
-        //     res.send(errObj)
-        // }
-        if(!userId){
-            errObj.message = '用户Id不能为空'
-            res.send(errObj)
-        }
-
-        const USER = await UserModel.findOne({id: userId})
-        const {type} = USER
-
-        const filter = {}
-        if(type === 'TEACHER'){
-            filter.teaId = id
-        }else if(type === 'STUDENT'){
-            filter.stuId = id
-        }else{
-            filter.teaId = id
-        }
-
-        // 查询教师所有的评论，越靠近当前查询时间的在列表中越靠前
-        const commentsList = await CommentModel.find(filter).skip((pageNum-1)*pageSize).limit(pageSize).sort({createTime: -1})
-        
-        res.send({
-            code: 0,
-            data: commentsList,
-            message: '查询成功'
-        })
+    // if(!id){
+    //     errObj.message = '被评论者id不能为空'
+    //     res.send(errObj)
+    // }
+    if (!userId) {
+      errObj.message = "用户Id不能为空";
+      res.send(errObj);
     }
 
-    /* 学生发布评论 */
-    async post(req, res, next){
-        const form = new formidable.IncomingForm();
-        form.parse(req, async (err, fields, files) => {
-            const { teaId, content, rate } = fields
-            const stuId = req.headers.authorization
-            const errObj = {
-                code: 400,
-                data: null,
-                message: ''
-            }
-            if(err){
-                errObj.message = '评价失败'
-                res.send(errObj)
-            }
+    const USER = await UserModel.findOne({ id: userId });
+    const { type } = USER;
 
-            if(!teaId){
-                errObj.message = '被评论者id不能为空'
-                res.send(errObj)
-            }else if(!content){
-                errObj.message = '评论内容不能为空'
-                res.send(errObj)
-            }else if(!rate){
-                errObj.message = '评分不能为空'
-                res.send(errObj)
-            }
-
-            const STUDENT = await UserModel.findOne({id: stuId}, "-password")
-            const TEACHER = await UserModel.findOne({id: teaId}, "-password")
-
-            const comment = await CommentModel.create({
-                teaId, 
-                stuId, 
-                content,
-                createTime: dtime().format('YYYY-MM-DD HH:mm:ss'),
-                rate,
-                studentDTO: STUDENT,
-                teacherDTO: TEACHER
-            })
-
-            res.send({
-                code: 0,
-                data: comment,
-                message: '评价成功'
-            })
-
-        })
+    const filter = {};
+    if (type === "TEACHER") {
+      filter.teaId = userId;
+    } else if (type === "STUDENT") {
+      filter.stuId = userId;
     }
 
-    /* 删除评论 */
-    async delete(req, res, next){
-        const {_id} = req.query
-        const errObj = {
-            code: 400,
-            data: null,
-            message: ''
-        }
+    console.log("comment list", filter);
 
-        if(!_id){
-            errObj.message = '评价id不能为空'
-            res.send(errObj)
-        }
+    // 查询教师所有的评论，越靠近当前查询时间的在列表中越靠前
+    const commentsList = await CommentModel.find(filter)
+      .skip((pageNum - 1) * pageSize)
+      .limit(pageSize)
+      .sort({ createTime: -1 });
 
-        const comment = await CommentModel.findByIdAndDelete(_id)
+    res.send({
+      code: 0,
+      data: {
+        list: commentsList,
+        total: commentsList.length,
+      },
+      message: "查询成功",
+    });
+  }
 
-        if (comment) {
-            res.send({
-              code: 0,
-              message: "评价删除成功",
-              data: null,
-            });
-          } else {
-            res.send({
-              code: 400,
-              message: "评价不存在",
-              data: null,
-            });
-          }
-    
+  /* 根据订单Id，或其他Id查询评论详情 */
+  async detail(req, res, next) {
+    const { orderId } = req.query;
+    if (!orderId) {
+      return res.send({
+        code: 400,
+        data: null,
+        message: "订单不能为空",
+      });
+    }
+    const comment = await CommentModel.findOne({ orderId });
+    res.send({
+      code: 0,
+      data: comment,
+      message: "查询成功",
+    });
+  }
+
+  /* 学生发布评论 */
+  async post(req, res, next) {
+    const form = new formidable.IncomingForm();
+    form.parse(req, async (err, fields, files) => {
+      const { _id, id, teaId, content, rate } = fields;
+      const stuId = req.headers.authorization;
+      const errObj = {
+        code: 400,
+        data: null,
+        message: "",
+      };
+      if (err) {
+        errObj.message = "评价失败";
+        res.send(errObj);
+      }
+
+      if (!teaId) {
+        errObj.message = "被评论者id不能为空";
+        res.send(errObj);
+      } else if (!content) {
+        errObj.message = "评论内容不能为空";
+        res.send(errObj);
+      } else if (!rate) {
+        errObj.message = "评分不能为空";
+        res.send(errObj);
+      }
+
+      const STUDENT = await UserModel.findOne({ id: stuId }, "-password");
+      const TEACHER = await UserModel.findOne({ id: teaId }, "-password");
+
+      await orderModel.findByIdAndUpdate(_id, {
+        status: "RATED",
+      });
+
+      const comment = await CommentModel.create({
+        orderId: id,
+        teaId,
+        stuId,
+        studentDTO: STUDENT,
+        teacherDTO: TEACHER,
+        content,
+        createTime: dtime().format("YYYY-MM-DD HH:mm:ss"),
+        rate,
+        id: Math.random().toString().slice(-5),
+      });
+
+      res.send({
+        code: 0,
+        data: comment,
+        message: "评价成功",
+      });
+    });
+  }
+
+  /* 删除评论 */
+  async delete(req, res, next) {
+    const { _id } = req.params;
+    console.log(_id);
+    const errObj = {
+      code: 400,
+      data: null,
+      message: "",
+    };
+
+    if (!_id) {
+      errObj.message = "评价id不能为空";
+      res.send(errObj);
     }
 
-    /* 不设计修改评价功能，只允许发布 */
+    const comment = await CommentModel.findByIdAndDelete(_id);
+
+    if (comment) {
+      res.send({
+        code: 0,
+        message: "评价删除成功",
+        data: null,
+      });
+    } else {
+      res.send({
+        code: 400,
+        message: "评价不存在",
+        data: null,
+      });
+    }
+  }
+
+  async update(req, res, next) {
+    const form = new formidable.IncomingForm();
+    form.parse(req, async (err, fields, files) => {
+      let errObj = {
+        message: "",
+        code: 400,
+        data: null,
+      };
+      if (err) {
+        errObj.message = "更新失败";
+        errObj.data = err;
+        return res.send(errObj);
+      }
+      const { id, _id, rate, content } = fields;
+      if (!id) {
+        errObj.message = "请选择订单";
+        return res.send(errObj);
+      }
+
+      await CommentModel.findByIdAndUpdate(_id, {
+        rate,
+        content,
+        updateTime: dtime().format("YYYY-MM-DD HH:mm:ss"),
+      });
+
+      res.send({
+        code: 0,
+        message: "更新成功",
+        data: null,
+      });
+    });
+  }
 }
 
 module.exports = new Comment();

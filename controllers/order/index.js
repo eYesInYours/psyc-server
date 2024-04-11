@@ -38,13 +38,16 @@ class Order {
         // console.log("order", orderStartTime);
         const orderEndTime = order.times[1]; // 计算订单结束时间
 
+        // 以下状态不做修改
+        const isConstant = order.status!='AGREE' && order.status!='REJECT' && order.status!='RATED'
+
         if (currentTime >= orderStartTime && currentTime <= orderEndTime) {
           // 如果当前时间在订单时间范围内，则更新订单状态为UNDERWAY
           order.status = "UNDERWAY";
-        } else if (currentTime > orderEndTime) {
+        } else if (currentTime > orderEndTime && isConstant) {
           // 如果当前时间超过订单结束时间，则更新订单状态为FINISHED
           order.status = "FINISHED";
-        }else if(currentTime < orderStartTime && (order.status!='AGREE' || order.status!='REJECT')){
+        }else if(currentTime < orderStartTime && isConstant){
           order.status = "APPLYING"
         }
         // 其他情况订单状态不变
