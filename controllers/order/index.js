@@ -7,7 +7,7 @@ const dtime = require("time-formater");
 class Order {
   /* 查询预约订单 */
   async list(req, res, next) {
-    const { pageNum = 1, pageSize = 20, teacherNickname = undefined } = req.query;
+    const { pageNum = 1, pageSize = 20, teacherNickname = undefined, studentNickname = undefined } = req.query;
     const userId = req.headers.authorization;
     const user = await userModel.findOne({ id: userId });
     let filter = {};
@@ -19,6 +19,9 @@ class Order {
     if (teacherNickname){
       const user = await userModel.findOne({nickname:teacherNickname})
       filter.teaId = user?.id
+    }else if(studentNickname){
+      const user = await userModel.findOne({nickname:studentNickname})
+      filter.stuId = user?.id
     }
 
     // 查询指定页码和指定数量的订单

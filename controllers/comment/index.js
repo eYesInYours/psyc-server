@@ -15,7 +15,13 @@ class Comment {
             ADMIN   查询教师所有的评论
 
         */
-    const { pageNum = 1, pageSize = 15, id } = req.query;
+    const {
+      pageNum = 1,
+      pageSize = 15,
+      id,
+      studentNickname,
+      teacherNickname,
+    } = req.query;
     const userId = req.headers.authorization;
     const errObj = {
       code: 400,
@@ -38,8 +44,16 @@ class Comment {
     const filter = {};
     if (type === "TEACHER") {
       filter.teaId = userId;
+      if (studentNickname){
+        const STUDENT = await UserModel.findOne({ nickname: studentNickname });
+        filter.stuId = STUDENT?.id;
+      }
     } else if (type === "STUDENT") {
       filter.stuId = userId;
+      if (teacherNickname){
+        const TEACHER = await UserModel.findOne({ nickname: teacherNickname });
+        filter.teaId = TEACHER?.id;
+      }
     }
 
     console.log("comment list", filter);
