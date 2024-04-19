@@ -7,7 +7,7 @@ const dtime = require("time-formater");
 class Order {
   /* 查询预约订单 */
   async list(req, res, next) {
-    const { pageNum = 1, pageSize = 20, teacherNickname = undefined } = req.query;
+    const { pageNum = 1, pageSize = 20, teacherNickname = undefined, studentNickname = undefined } = req.query;
     const userId = req.headers.authorization;
     const user = await userModel.findOne({ id: userId });
     let filter = {};
@@ -19,6 +19,9 @@ class Order {
     if (teacherNickname){
       const user = await userModel.findOne({nickname:teacherNickname})
       filter.teaId = user?.id
+    }else if(studentNickname){
+      const user = await userModel.findOne({nickname:studentNickname})
+      filter.stuId = user?.id
     }
 
     // 查询指定页码和指定数量的订单
@@ -38,13 +41,16 @@ class Order {
         // console.log("order", orderStartTime);
         const orderEndTime = order.times[1]; // 计算订单结束时间
 
+        // 以下状态不做修改
+        const isConstant = order.status!='AGREE' && order.status!='REJECT' && order.status!='RATED'
+
         if (currentTime >= orderStartTime && currentTime <= orderEndTime) {
           // 如果当前时间在订单时间范围内，则更新订单状态为UNDERWAY
           order.status = "UNDERWAY";
-        } else if (currentTime > orderEndTime) {
+        } else if (currentTime > orderEndTime && isConstant) {
           // 如果当前时间超过订单结束时间，则更新订单状态为FINISHED
           order.status = "FINISHED";
-        }else if(currentTime < orderStartTime && (order.status!='AGREE' || order.status!='REJECT')){
+        }else if(currentTime < orderStartTime && isConstant){
           order.status = "APPLYING"
         }
         // 其他情况订单状态不变
@@ -162,7 +168,8 @@ class Order {
         return res.send(errObj);
       }
 
-      if(status != 'APPLYING'){
+      const order = await orderModel.findById(_id);
+      if(order.status != 'APPLYING'){
         errObj.message = "预约不在申请中，已不能处理";
         return res.send(errObj);
       }
@@ -172,7 +179,7 @@ class Order {
         return res.send(errObj);
       }
 
-      const order = await orderModel.findById(_id);
+
       order.status = status;
       if (status == "REJECT") order.rejectReason = rejectReason;
       await order.save();
@@ -180,7 +187,7 @@ class Order {
       res.send({
         code: 0,
         message: "操作成功",
-        data: null,
+        data: order,
       });
     });
   }
