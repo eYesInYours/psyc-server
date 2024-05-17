@@ -9,7 +9,6 @@ const courseSchema = new Schema({
   classroomId: { type: Schema.Types.ObjectId, ref: "Classroom", required: true }, // 关联教室模型
   startTime: Date,
   endTime: Date
-  // 其他字段根据需要添加
 });
 
 // 在课程模型中添加静态方法，用于检查教室在指定时间是否可用

@@ -7,7 +7,8 @@ const dtime = require("time-formater");
 class Order {
   /* 查询预约订单 */
   async list(req, res, next) {
-    const { pageNum = 1, pageSize = 20, teacherNickname = undefined, studentNickname = undefined } = req.query;
+    const { pageNum = 1, pageSize = 20, 
+      teacherNickname = undefined, studentNickname = undefined } = req.query;
     const userId = req.headers.authorization;
     const user = await userModel.findOne({ id: userId });
     let filter = {};
@@ -42,7 +43,8 @@ class Order {
         const orderEndTime = order.times[1]; // 计算订单结束时间
 
         // 以下状态不做修改
-        const isConstant = order.status!='AGREE' && order.status!='REJECT' && order.status!='RATED'
+        const isConstant = order.status!='AGREE' 
+                            && order.status!='REJECT' && order.status!='RATED'
 
         if (currentTime >= orderStartTime && currentTime <= orderEndTime) {
           // 如果当前时间在订单时间范围内，则更新订单状态为UNDERWAY
@@ -114,7 +116,6 @@ class Order {
 
       // 用户Id
       const userId = req.headers.authorization;
-      // console.log("create", userId, id);
 
       // 查找订单
       const userOrder = await orderModel.findOne({
@@ -129,7 +130,6 @@ class Order {
 
       times.forEach((time, index) => {
         times[index] = dtime(time).format("YYYY-MM-DD HH:mm:ss");
-        // console.log("time", time);
       });
       const order = await orderModel.create({
         teaId: id,

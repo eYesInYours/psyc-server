@@ -7,6 +7,7 @@ const appoint = require("./appoint");
 const order = require("./order");
 const util = require('./util')
 const comment = require('./comment')
+const questionnaire = require('./questionnaire')
 
 module.exports = (app) => {
   app.use("/user", user);
@@ -16,4 +17,5 @@ module.exports = (app) => {
   app.use("/order", order);
   app.use("/util", util);
   app.use("/comment", comment);
+  app.use("/questionnaire", questionnaire)
 };

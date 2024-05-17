@@ -6,6 +6,7 @@ const formidable = require("formidable");
 const dtime = require("time-formater");
 
 class Admin {
+  
   /* 查询用户列表 */
   async list(req, res, next) {
     const {

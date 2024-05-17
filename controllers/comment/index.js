@@ -9,12 +9,6 @@ const dtime = require("time-formater");
 class Comment {
   /* 查询老师的评论列表 */
   async list(req, res, next) {
-    /* 
-            TEACHER 查询对他所有的评论
-            STUDENT 查询自己所有的评论
-            ADMIN   查询教师所有的评论
-
-        */
     const {
       pageNum = 1,
       pageSize = 15,
@@ -29,10 +23,6 @@ class Comment {
       message: "",
     };
 
-    // if(!id){
-    //     errObj.message = '被评论者id不能为空'
-    //     res.send(errObj)
-    // }
     if (!userId) {
       errObj.message = "用户Id不能为空";
       res.send(errObj);
@@ -149,7 +139,6 @@ class Comment {
   /* 删除评论 */
   async delete(req, res, next) {
     const { _id } = req.params;
-    console.log(_id);
     const errObj = {
       code: 400,
       data: null,
